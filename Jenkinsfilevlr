@@ -1,0 +1,23 @@
+node{
+
+def M2_HOME = tool name: "maven3.8.1"
+
+stage('CheckOutCode'){
+git branch: 'development', credentialsId: '78e29684-801c-4f8d-b303-528c83f8bf3d', url: 'https://github.com/Loknadh-cloud/maven-web-application.git'
+}
+stage('build'){
+sh "${M2_HOME}/bin/mvn clean package"
+}
+stage('sonarQubeReport'){
+sh "${M2_HOME}/bin/mvn sonar:sonar"
+}
+stage('uplpoadArtifactNexus'){
+sh "${M2_HOME}/bin/mvn clean deploy"
+}
+stage('DeployInTomcatServer'){
+sshagent(['5ad470d9-a2b2-45d5-8a92-5872ab5908b7']) {
+ sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.58.156.45:/opt/apache-tomcat-9.0.46/webapps/"
+}
+}
+
+}
